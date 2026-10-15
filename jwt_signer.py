@@ -7,7 +7,9 @@ import cryptography
 from colorama import Fore, Back, Style, init
 
 init(autoreset=True)
-escape_while = False 
+escape_while = False
+
+symmetric_allowed_digital_signature_algorithms = ['HS256','HS286', 'HS512']
 
 
 
@@ -22,20 +24,39 @@ def main():
     print(Style.BRIGHT+Fore.YELLOW+"Altere itens do payload (aperte 0 para sair)\n")
 
    
-    while escape_while == False:
+    do_jwt_payload_modification_loop(payload_object, escape_while)
+      
+
+    token = create_symmetric_signed_jwt_token(payload_object, "123", "HS256")
+
+    print(token)
+
+
+
+def create_symmetric_signed_jwt_token(payload, secret="", algorithms=['HS256','HS286', 'HS512']):
+     token = jwt.encode(payload, secret, algorithms)
+     return token
+     
+def do_jwt_payload_modification_loop(payload, will_escape_loop=False):
+    while will_escape_loop == False:
         print("Valor atual")
-        print_jwt_payload_structure(payload_object)
+        print_jwt_payload_structure(payload)
         jwt_value = ""
         jwt_field = input("Digite o campo jwt que quer alterar: \n")
-
-        if (jwt_field in payload_object.keys()):
-             jwt_value = input(f"Digite o novo valor de {jwt_field}")
-             payload_object[jwt_field] = jwt_value
-            
         
-
-
+        if (jwt_field in payload.keys()):
+            jwt_value = input(f"Digite o novo valor de {jwt_field}: ")
+            payload[jwt_field] = jwt_value
+        
+            escape_input = input("Aperte 0 para sair, qualquer outro para continuar\n\n")
+        
+            if escape_input == "0":
+                will_escape_loop = True
     
+        return will_escape_loop
+    return
+    
+
 
 def split_jwt(token):
     split_token = token.split('.')
@@ -59,6 +80,7 @@ def print_jwt_structure(header_object, payload_object):
     print(Style.BRIGHT+Fore.YELLOW+f"{header_object} \n")
     print(Style.BRIGHT+Fore.WHITE+f"Payload:")
     print(Style.BRIGHT+Fore.YELLOW+f"{payload_object} \n\n\n")
+    return
 
 
 def print_jwt_payload_structure(payload_object):
